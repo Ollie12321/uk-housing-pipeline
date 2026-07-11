@@ -1,0 +1,29 @@
+version: 2
+
+models:
+  - name: int_rates_reconciled
+    description: >
+      Unified BoE base rate series combining the nightly batch load and
+      real-time Pub/Sub streaming events. Deduplicated by effective_date
+      with streaming taking priority over batch for the same date.
+    columns:
+      - name: effective_date
+        tests: [unique, not_null]
+      - name: base_rate
+        tests: [not_null]
+      - name: source_type
+        tests:
+          - accepted_values:
+              values: ["batch", "streaming"]
+
+  - name: int_transactions_with_rates
+    description: >
+      Land Registry transactions joined to the prevailing BoE base rate
+      (via AS-OF logic) and average monthly gilt yield at the time of sale.
+    columns:
+      - name: transaction_id
+        tests: [unique, not_null]
+      - name: price
+        tests: [not_null]
+      - name: transaction_date
+        tests: [not_null]

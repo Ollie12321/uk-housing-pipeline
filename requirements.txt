@@ -1,0 +1,15 @@
+# Extraction & load
+google-cloud-storage>=2.14.0
+google-cloud-bigquery>=3.14.0
+google-cloud-pubsub>=2.19.0
+requests>=2.31.0
+yfinance>=0.2.36
+
+# Data quality
+great-expectations>=0.18.0
+
+# Orchestration (local Airflow via docker-compose uses its own image)
+apache-airflow-providers-google>=10.13.0
+
+# dbt (also installed in CI; listed here for local dev)
+dbt-bigquery>=1.7.0

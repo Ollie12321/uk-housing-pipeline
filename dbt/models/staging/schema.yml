@@ -1,0 +1,97 @@
+version: 2
+
+sources:
+  - name: raw
+    database: "{{ env_var('GCP_PROJECT_ID') }}"
+    schema: raw
+    tables:
+
+      - name: land_registry_transactions
+        description: >
+          HM Land Registry Price Paid Data — all residential property
+          transactions in England & Wales. Partitioned by transaction_date.
+        columns:
+          - name: transaction_id
+            tests: [unique, not_null]
+          - name: price
+            tests:
+              - not_null
+              - dbt_utils.accepted_range:
+                  min_value: 1
+                  inclusive: true
+          - name: transaction_date
+            tests: [not_null]
+          - name: property_type
+            tests:
+              - accepted_values:
+                  values: ["D", "S", "T", "F", "O"]
+
+      - name: boe_base_rates
+        description: >
+          Bank of England official base rate history loaded daily.
+        columns:
+          - name: effective_date
+            tests: [not_null]
+          - name: base_rate
+            tests:
+              - not_null
+              - dbt_utils.accepted_range:
+                  min_value: 0
+                  max_value: 20
+
+      - name: gilt_yields
+        description: UK 10-year gilt yields fetched via yfinance.
+        columns:
+          - name: date
+            tests: [not_null]
+          - name: yield_pct
+            tests:
+              - dbt_utils.accepted_range:
+                  min_value: 0
+                  max_value: 25
+
+      - name: boe_rate_events_streaming
+        description: >
+          Real-time BoE rate change events streamed in via Pub/Sub.
+        columns:
+          - name: event_id
+            tests: [unique, not_null]
+          - name: new_rate
+            tests: [not_null]
+
+models:
+  - name: stg_transactions
+    description: >
+      Cleaned Land Registry transactions. Only active records (record_status = A)
+      with normalised postcodes and county renamed to region.
+    columns:
+      - name: transaction_id
+        tests: [unique, not_null]
+      - name: price
+        tests: [not_null]
+      - name: transaction_date
+        tests: [not_null]
+      - name: property_type
+        tests:
+          - accepted_values:
+              values: ["D", "S", "T", "F", "O"]
+
+  - name: stg_boe_rates
+    description: Cleaned and deduplicated Bank of England base rate history.
+    columns:
+      - name: effective_date
+        tests: [unique, not_null]
+      - name: base_rate
+        tests: [not_null]
+
+  - name: stg_gilt_yields
+    description: Cleaned UK 10-year gilt yield time series.
+    columns:
+      - name: date
+        tests: [unique, not_null]
+
+  - name: stg_boe_rate_events_streaming
+    description: Deduplicated Pub/Sub streaming rate change events.
+    columns:
+      - name: event_id
+        tests: [unique, not_null]

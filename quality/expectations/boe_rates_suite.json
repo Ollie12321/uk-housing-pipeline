@@ -1,0 +1,43 @@
+{
+  "expectation_suite_name": "boe_rates_suite",
+  "ge_cloud_id": null,
+  "expectations": [
+    {
+      "expectation_type": "expect_column_to_exist",
+      "kwargs": { "column": "effective_date" },
+      "meta": {}
+    },
+    {
+      "expectation_type": "expect_column_values_to_not_be_null",
+      "kwargs": { "column": "effective_date" },
+      "meta": {}
+    },
+    {
+      "expectation_type": "expect_column_to_exist",
+      "kwargs": { "column": "base_rate" },
+      "meta": {}
+    },
+    {
+      "expectation_type": "expect_column_values_to_not_be_null",
+      "kwargs": { "column": "base_rate" },
+      "meta": {}
+    },
+    {
+      "expectation_type": "expect_column_values_to_be_between",
+      "kwargs": {
+        "column": "base_rate",
+        "min_value": 0,
+        "max_value": 20
+      },
+      "meta": { "notes": "UK base rate has never exceeded 17% (1979 peak)" }
+    },
+    {
+      "expectation_type": "expect_table_row_count_to_be_between",
+      "kwargs": { "min_value": 1, "max_value": 10 },
+      "meta": { "notes": "Daily file is a single record for the current rate" }
+    }
+  ],
+  "meta": {
+    "great_expectations_version": "0.18.0"
+  }
+}

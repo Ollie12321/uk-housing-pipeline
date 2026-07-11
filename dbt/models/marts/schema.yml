@@ -1,0 +1,59 @@
+version: 2
+
+models:
+  - name: monthly_transactions_by_region
+    description: >
+      Incremental model. Aggregates Land Registry transactions by calendar month,
+      region (county), and property type. Includes average rate and gilt yield
+      at time of transaction.
+    columns:
+      - name: month_region_key
+        tests: [unique, not_null]
+      - name: month
+        tests: [not_null]
+      - name: region
+        tests: [not_null]
+      - name: transaction_count
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              inclusive: false
+      - name: avg_price
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              inclusive: false
+
+  - name: rate_change_events
+    description: >
+      One row per Bank of England rate change, with direction (hike/cut),
+      magnitude, and source type (batch or streaming).
+    columns:
+      - name: effective_date
+        tests: [unique, not_null]
+      - name: direction
+        tests:
+          - accepted_values:
+              values: ["hike", "cut"]
+
+  - name: rate_lag_analysis
+    description: >
+      The centrepiece model. Monthly transaction volumes and prices per region
+      joined to BoE base rate at 0, 1, 2, 3, and 6 month lags. Used to answer
+      "how long does it take for a rate change to hit transaction volumes?"
+    columns:
+      - name: month
+        tests: [not_null]
+      - name: region
+        tests: [not_null]
+
+  - name: regional_sensitivity
+    description: >
+      Ranks regions by how strongly their transaction volumes respond to
+      BoE rate changes. sensitivity_score is the mean absolute volume
+      response differential between hike and cut episodes.
+    columns:
+      - name: region
+        tests: [not_null]
+      - name: property_type
+        tests: [not_null]

@@ -1,0 +1,31 @@
+name: uk_housing_pipeline
+version: 1.0.0
+config-version: 2
+profile: uk_housing_pipeline
+
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+target-path: target
+clean-targets:
+  - target
+  - dbt_packages
+
+models:
+  uk_housing_pipeline:
+    staging:
+      +schema: staging
+      +materialized: view
+    intermediate:
+      +schema: staging
+      +materialized: view
+    marts:
+      +schema: marts
+      +materialized: table
+
+vars:
+  min_transaction_date: "1995-01-01"

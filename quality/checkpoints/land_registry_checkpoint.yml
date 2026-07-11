@@ -1,0 +1,28 @@
+name: land_registry_checkpoint
+config_version: 1.0
+class_name: SimpleCheckpoint
+run_name_template: "%Y-%m-%dT%H:%M:%S-land-registry"
+
+validations:
+  - batch_request:
+      datasource_name: gcs_datasource
+      data_connector_name: gcs_connector
+      data_asset_name: land_registry
+      data_connector_query:
+        index: -1
+    expectation_suite_name: land_registry_suite
+
+action_list:
+  - name: store_validation_result
+    action:
+      class_name: StoreValidationResultAction
+  - name: store_evaluation_params
+    action:
+      class_name: StoreEvaluationParametersAction
+  - name: update_data_docs
+    action:
+      class_name: UpdateDataDocsAction
+  - name: raise_error_if_validation_fails
+    action:
+      class_name: PipelineFailAction
+      raise_on_any_failure: true
