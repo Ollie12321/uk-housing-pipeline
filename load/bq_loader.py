@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 LAND_REGISTRY_SCHEMA: Sequence[bigquery.SchemaField] = [
     bigquery.SchemaField("transaction_id", "STRING"),
     bigquery.SchemaField("price", "INTEGER"),
-    bigquery.SchemaField("transaction_date", "DATE"),
+    bigquery.SchemaField("transaction_date", "STRING"),
     bigquery.SchemaField("postcode", "STRING"),
     bigquery.SchemaField("property_type", "STRING"),
     bigquery.SchemaField("old_new", "STRING"),

@@ -1,0 +1,12 @@
+uk_housing_pipeline:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: service-account
+      project: "uk-housing-ol-2025"
+      dataset: staging
+      threads: 4
+      timeout_seconds: 300
+      location: europe-west2
+      keyfile: "/Users/olivermusgrove/Documents/Data Engineering/uk-housing-pipeline/secrets/gcp-sa-key.json"

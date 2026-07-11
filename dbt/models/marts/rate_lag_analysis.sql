@@ -37,14 +37,10 @@ all_months as (
 rate_at_month as (
     select
         am.calendar_month,
-        (
-            select r.base_rate
-            from rates r
-            where r.effective_month <= am.calendar_month
-            order by r.effective_month desc
-            limit 1
-        ) as base_rate
+        array_agg(r.base_rate order by r.effective_month desc limit 1)[safe_offset(0)] as base_rate
     from all_months am
+    join rates r on r.effective_month <= am.calendar_month
+    group by am.calendar_month
 ),
 
 lagged as (

@@ -54,17 +54,12 @@ resource "google_bigquery_table" "land_registry_transactions" {
   table_id            = "land_registry_transactions"
   deletion_protection = false
 
-  time_partitioning {
-    type  = "MONTH"
-    field = "transaction_date"
-  }
-
   clustering = ["county", "property_type"]
 
   schema = jsonencode([
     { name = "transaction_id", type = "STRING", mode = "NULLABLE" },
     { name = "price", type = "INTEGER", mode = "NULLABLE" },
-    { name = "transaction_date", type = "DATE", mode = "NULLABLE" },
+    { name = "transaction_date", type = "STRING", mode = "NULLABLE" },
     { name = "postcode", type = "STRING", mode = "NULLABLE" },
     { name = "property_type", type = "STRING", mode = "NULLABLE" },
     { name = "old_new", type = "STRING", mode = "NULLABLE" },

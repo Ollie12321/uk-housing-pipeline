@@ -36,18 +36,16 @@ aggregated as (
         property_type,
         count(*)                              as transaction_count,
         avg(price)                            as avg_price,
-        -- BigQuery APPROX_QUANTILES is cheaper than PERCENTILE_CONT on 30yr data
         approx_quantiles(price, 100)[offset(50)] as median_price,
         min(price)                            as min_price,
         max(price)                            as max_price,
         avg(base_rate)                        as avg_base_rate,
-        avg(gilt_yield_pct)                   as avg_gilt_yield_pct,
-        concat(
-            cast(date_trunc(transaction_date, month) as string),
-            '_', region, '_', property_type
-        )                                     as month_region_key
+        avg(gilt_yield_pct)                   as avg_gilt_yield_pct
     from source
     group by 1, 2, 3
 )
 
-select * from aggregated
+select
+    *,
+    concat(cast(month as string), '_', region, '_', property_type) as month_region_key
+from aggregated

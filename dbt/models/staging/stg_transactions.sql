@@ -6,7 +6,7 @@ renamed as (
     select
         transaction_id,
         price,
-        transaction_date,
+        parse_date('%Y-%m-%d', left(transaction_date, 10)) as transaction_date,
         upper(trim(postcode)) as postcode,
         property_type,
         old_new,
@@ -22,7 +22,7 @@ renamed as (
         record_status
     from source
     where record_status = 'A'
-        and transaction_date >= date('{{ var("min_transaction_date") }}')
+        and left(transaction_date, 10) >= '{{ var("min_transaction_date") }}'
 )
 
 select * from renamed
