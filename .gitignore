@@ -19,3 +19,5 @@ dbt/logs/
 .DS_Store
 *.csv
 *.parquet
+.venv/
+.venv-dbt/
