@@ -28,4 +28,4 @@ models:
       +materialized: table
 
 vars:
-  min_transaction_date: "1995-01-01"
+  min_transaction_date: "1997-01-01"

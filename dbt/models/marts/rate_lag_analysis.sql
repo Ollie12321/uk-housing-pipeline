@@ -47,6 +47,7 @@ lagged as (
     select
         t.month,
         t.region,
+        t.broad_region,
         t.property_type,
         t.transaction_count,
         t.avg_price,
