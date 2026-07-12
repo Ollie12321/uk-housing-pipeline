@@ -1,7 +1,7 @@
 # Looker Studio Dashboard Setup
 
-This guide builds the five-panel dashboard you can showcase on LinkedIn.
-Total time: ~45 minutes.
+This guide builds a six-panel dashboard you can showcase on LinkedIn.
+Total time: ~60 minutes.
 
 ---
 
@@ -24,30 +24,73 @@ Total time: ~45 minutes.
 
 ---
 
-## 2. Date Range — Apply to All Charts
+## 2. Page Layout & Dimensions
 
-All charts (except Chart 2) should use the **same date range**: **Custom: 1997-06-01 → today**
+Set the page canvas to **1200 × 1100 px**: Theme and Layout → Layout → set Width=1200, Height=1100.
 
-- Transaction data covers **Jan 1997 → May 2026** — `rate_lag_analysis` has 178k rows spanning this range
-- BoE rate history starts **June 1997** (first MPC decision) — months Jan–May 1997 have transaction counts but NULL `rate_at_month`; use 1997-06-01 as chart start dates to keep rate + transaction data aligned
-- Do **not** use "Last N years" presets — Looker Studio counts from today backwards and may clip the earliest data
+The dashboard is divided into four horizontal bands:
 
-Add a single **Date Range Control** at the top of the dashboard connected to the `month`
-field. This will sync Charts 1, 3 and 5 simultaneously. Chart 2 and Chart 4 use different
-date fields — see per-chart notes below.
+```
+┌─────────────────────────────────────────────────────────┐  y=15,  h=50
+│  HEADER  Title + subtitle (full width text box)         │
+├────────────────┬────────────────┬───────────────────────┤  y=75,  h=70
+│  Scorecard 1   │  Scorecard 2   │  Scorecard 3          │
+│  Current Rate  │  Total Trans.  │  Avg Detached Price   │
+├───────────────────────────────────┬─────────────────────┤  y=155, h=330
+│  Chart 1 — Volume vs Rate         │  Chart 2 — Rate      │
+│  Combo chart (bars + line)        │  Change Events       │
+│  w=740                            │  w=440               │
+├──────────────────────┬────────────┴──────────────────────┤  y=495, h=300
+│  Chart 3 — Heatmap   │  Chart 6 — Avg Price Over Time    │
+│  Pivot table         │  Line chart                       │
+│  w=580               │  w=600                            │
+├──────────────────────┬───────────────────────────────────┤  y=805, h=280
+│  Chart 4 — Regional  │  Chart 5 — Price vs Rate Scatter  │
+│  Sensitivity Bars    │  Scatter chart                    │
+│  w=580               │  w=600                            │
+└──────────────────────┴───────────────────────────────────┘
+```
+
+**Exact positions** (x, y, width, height — all in px, 20px left margin):
+
+| Element | x | y | w | h |
+|---------|---|---|---|---|
+| Header text box | 20 | 15 | 1160 | 50 |
+| Scorecard 1 (Current Rate) | 20 | 75 | 370 | 65 |
+| Scorecard 2 (Total Transactions) | 410 | 75 | 370 | 65 |
+| Scorecard 3 (Avg Detached Price) | 800 | 75 | 380 | 65 |
+| Chart 1 — Volume vs Rate | 20 | 155 | 740 | 330 |
+| Chart 2 — Rate Change Events | 780 | 155 | 400 | 330 |
+| Chart 3 — Heatmap | 20 | 495 | 575 | 300 |
+| Chart 6 — Avg Price Over Time | 615 | 495 | 565 | 300 |
+| Chart 4 — Regional Sensitivity | 20 | 805 | 575 | 280 |
+| Chart 5 — Price vs Rate Scatter | 615 | 805 | 565 | 280 |
+
+To set position/size: click a chart → Position and size panel (bottom right) → enter values exactly.
 
 ---
 
-## 3. Key Fields Reference
+## 3. Date Range
 
-Before configuring charts, note these field names in the tables:
+All charts using `rate_lag_analysis` share the same date range: **Custom: 1997-01-01 → today**
 
-**`rate_lag_analysis`**
+- Transaction data: Jan 1997 → May 2026 (178k rows in `rate_lag_analysis`)
+- BoE rate history starts June 1997 — the rate line on Chart 1 naturally starts there; the 5-month gap in bars before it is expected
+- Do **not** use "Last N years" presets — they clip the earliest data
+
+Add a **Date Range Control** (Insert → Date Range Control) connected to the `month` field.
+Connect it to Charts 1, 3, 5 and 6 via Edit interactions. Do **not** connect it to Charts 2 or 4.
+
+---
+
+## 4. Key Fields Reference
+
+**`rate_lag_analysis`** (Charts 1, 3, 5, 6)
 | Field | Type | Notes |
 |-------|------|-------|
 | `month` | DATE | First day of each calendar month |
-| `broad_region` | STRING | **Use this for filters/grouping** — 10 standard regions (London, South East, etc.) |
-| `region` | STRING | County-level (130+ values, e.g. SURREY, WEST MIDLANDS) — too granular for most charts |
+| `broad_region` | STRING | **Use this for filters/grouping** — 10 standard regions |
+| `region` | STRING | County-level (130+ values) — too granular for most charts |
 | `property_type` | STRING | D=Detached, S=Semi, T=Terraced, F=Flat, O=Other |
 | `transaction_count` | INT | Monthly sale count |
 | `avg_price` | FLOAT | Average sale price (£) |
@@ -56,7 +99,7 @@ Before configuring charts, note these field names in the tables:
 | `rate_change_3m` | FLOAT | Rate change vs 3 months prior |
 | `rate_change_6m` | FLOAT | Rate change vs 6 months prior |
 
-**`rate_change_events`**
+**`rate_change_events`** (Chart 2)
 | Field | Type | Notes |
 |-------|------|-------|
 | `effective_date` | DATE | Date rate change took effect |
@@ -65,23 +108,40 @@ Before configuring charts, note these field names in the tables:
 | `rate_change_bps` | FLOAT | Change in basis points |
 | `direction` | STRING | `hike` or `cut` |
 
-**`regional_sensitivity`**
+> This table also has `effective_month` and `source_type` — ignore these for the chart.
+
+**`regional_sensitivity`** (Chart 4)
 | Field | Type | Notes |
 |-------|------|-------|
 | `region` | STRING | County-level (no `broad_region` in this table) |
 | `property_type` | STRING | D/S/T/F/O |
 | `months_observed` | INT | Number of months of data for this region/type |
-| `avg_pct_vol_change_3m` | FLOAT | Avg % volume change over 3 months |
-| `rate_volume_correlation` | FLOAT | Correlation between rate moves and volume |
 | `avg_vol_change_after_hike` | FLOAT | Avg % volume change in 3 months after a rate hike |
 | `avg_vol_change_after_cut` | FLOAT | Avg % volume change in 3 months after a rate cut |
 | `sensitivity_score` | FLOAT | Composite score — higher = more sensitive to rate changes |
 
+> **If `broad_region` is missing from any field picker:** Resource → Manage added data sources
+> → Edit [rate_lag_analysis] → **Refresh fields** → Apply. The column was added after first connection.
+
 ---
 
-## 4. Chart-by-Chart Configuration
+## 5. Scorecards
 
-### Chart 1 — Transaction Volume vs Base Rate (Combo Chart)
+Add three scorecards (Insert → Scorecard) using the positions in section 2.
+
+| Scorecard | Data source | Metric | Label |
+|-----------|-------------|--------|-------|
+| Current Base Rate | `rate_change_events` | `MAX(base_rate)` | "Current Base Rate (%)" |
+| Total Transactions | `rate_lag_analysis` | `SUM(transaction_count)` | "Transactions (1997–2026)" |
+| Avg Detached Price | `rate_lag_analysis` | `AVG(avg_price)` with filter `property_type = D` | "Avg Detached Price (£)" |
+
+Style: compact font, no border, background `#1A237E`, text white.
+
+---
+
+## 6. Chart-by-Chart Configuration
+
+### Chart 1 — Transaction Volume vs Base Rate
 
 **Data source:** `rate_lag_analysis`
 
@@ -95,15 +155,7 @@ Before configuring charts, note these field names in the tables:
 | Date range | **Custom: 1997-01-01 to today** |
 | Sort | `month` ascending |
 
-**Setting up dual axis:** After adding both metrics, click `AVG(rate_at_month)` in the
-Metric panel → toggle **"Right axis"** on. This keeps the two scales separate (transaction
-count vs 0–8% rate).
-
-> Note: the bars start in Jan 1997 but the rate line only appears from Jun 1997 (first MPC decision). The 5-month gap at the start is normal and expected.
-
-Add a **Broad Region** filter dropdown: Insert → Filter Control → Dimension: `broad_region`.
-
-> **If `broad_region` is not visible as a field option:** Resource → Manage added data sources → Edit [rate_lag_analysis] → **Refresh fields** → Apply. This picks up all new columns added since the data source was first connected.
+After adding both metrics, click `AVG(rate_at_month)` → toggle **"Right axis"** on.
 
 ---
 
@@ -118,22 +170,16 @@ Add a **Broad Region** filter dropdown: Insert → Filter Control → Dimension:
 | Metric | `rate_change_bps` → label "Change (bps)" |
 | Breakdown dimension | `direction` |
 | Sort | `effective_date` ascending |
-| **Record limit** | **100** (CRITICAL — default is 10, which only shows the first 10 events = 1997–1999) |
-| Date range | **Auto: All data** (this table uses `effective_date`, not `month` — the global date range control will NOT connect to it; leave it set to "Auto" on the chart itself) |
+| **Record limit** | **100** (default is 10 — this is why only 1997–1999 shows initially) |
+| Date range | **Auto: All data** |
 
-> **If chart only shows 1997–1999:** Open the chart → Data tab → find "Row limit" or "Number of bars" → change from 10 to **100**. This is the most common issue with this chart.
+> **If chart only shows 1997–1999:** Data tab → "Number of bars" (or "Row limit") → set to **100**.
 
-> **Do not connect** the global Date Range control to this chart. Since the data source uses `effective_date` (not `month`), the global control will filter it incorrectly.
+> **Do not** connect the global Date Range control to this chart — it uses `effective_date` not `month`.
 
-> The table also has `effective_month` and `source_type` columns — ignore these for the chart.
-
-Set colours for `direction` breakdown:
+Colours for `direction` breakdown:
 - `hike` → Red (`#D32F2F`)
 - `cut` → Green (`#388E3C`)
-
-Add two **Scorecards** (Insert → Scorecard) to the side using `rate_change_events`:
-- `MAX(base_rate)` → label "Current Base Rate"
-- `COUNT(direction)` with filter `direction = hike` → label "Total hikes (1997–present)"
 
 ---
 
@@ -141,19 +187,15 @@ Add two **Scorecards** (Insert → Scorecard) to the side using `rate_change_eve
 
 **Data source:** `rate_lag_analysis`
 
-This is the most impressive chart for interviews.
-
-> **If `broad_region` is not in the dimension picker:** The column was added after the data source was first connected. Fix: **Resource → Manage added data sources → Edit [rate_lag_analysis] → click "Refresh fields" → Apply**. The `broad_region` field will then appear.
-
 | Setting | Value |
 |---------|-------|
 | Chart type | **Pivot table** |
-| Row dimension | `broad_region` (**not** `region` — `region` is county-level with 130+ values and causes "invalid dimension") |
+| Row dimension | `broad_region` (**not** `region` — causes "invalid dimension") |
 | Column dimension | Calculated field `Rate Change Bucket` (see below) |
 | Metric | `AVG(transaction_count)` |
 | Date range | **Custom: 1997-06-01 to today** |
 
-Create a **calculated field** called `Rate Change Bucket`:
+Calculated field `Rate Change Bucket`:
 ```
 CASE
   WHEN rate_change_1m > 0.25 THEN "Hike >25bp"
@@ -161,33 +203,28 @@ CASE
   ELSE "Stable"
 END
 ```
-*(Add via: Data panel → Add a field → enter formula above)*
+*(Data panel → Add a field → paste formula)*
 
-Enable **heatmap colouring** on the metric:
-- Click the metric in the pivot config → turn on Heatmap
-- Colour scale: green (high volume) → red (low volume)
-
-This shows at a glance which broad regions lose the most transactions during a hike.
+Enable **heatmap colouring**: click the metric → turn on Heatmap → green (high) → red (low).
 
 ---
 
-### Chart 4 — Regional Sensitivity Ranking (Bar Chart)
+### Chart 4 — Regional Sensitivity Ranking
 
 **Data source:** `regional_sensitivity`
 
 | Setting | Value |
 |---------|-------|
 | Chart type | **Horizontal bar chart** |
-| Dimension | `region` (county-level — keep top 15 to stay readable) |
+| Dimension | `region` (county-level — top 15 keeps it readable) |
 | Metric | `sensitivity_score` |
 | Sort | `sensitivity_score` descending |
 | Record limit | 15 |
 | Date range | n/a (no date field in this table) |
 
-Add a **Property Type** filter control (Insert → Filter Control → Dimension: `property_type`).
+Colour gradient: Style → Bar colour → dark navy (`#1A237E`) for max, light blue (`#BBDEFB`) for min.
 
-Colour rule: Style tab → Bar colour → set a single colour gradient. Pick dark navy (`#1A237E`)
-for max, light blue (`#BBDEFB`) for min.
+Add a **Property Type** filter control: Insert → Filter Control → `property_type`.
 
 ---
 
@@ -203,39 +240,54 @@ for max, light blue (`#BBDEFB`) for min.
 | Bubble size | `SUM(transaction_count)` |
 | Breakdown dimension | `property_type` |
 | Date range | **Custom: 1997-06-01 to today** |
-| Filter | Add filter: `broad_region` = London, South East, South West, West Midlands, North West (top 5) |
+| Filter | `broad_region` IN (London, South East, South West, West Midlands, North West) |
 
-Colour by `property_type`:
-- D (Detached) → Dark blue
-- S (Semi) → Teal
-- T (Terraced) → Purple
-- F (Flat) → Orange
-
-This shows that detached homes cluster at higher prices AND show larger drops after rate rises
-(they shift left on the X-axis during hike periods).
+Colours: D=Dark blue, S=Teal, T=Purple, F=Orange.
 
 ---
 
-## 5. Global Filters
+### Chart 6 — Average Sale Price Over Time *(new)*
 
-Add these three controls at the top of the dashboard:
+**Data source:** `rate_lag_analysis`
 
-1. **Date Range** control → `month` field → default: Custom 1997-06-01 to today
-2. **Broad Region** dropdown → `broad_region` from `rate_lag_analysis`
-3. **Property Type** dropdown → `property_type` from `rate_lag_analysis`
+| Setting | Value |
+|---------|-------|
+| Chart type | **Line chart** |
+| Dimension | `month` |
+| Breakdown dimension | `property_type` |
+| Metric | `AVG(avg_price)` → label "Avg Sale Price (£)" |
+| Date range | **Custom: 1997-01-01 to today** |
+| Sort | `month` ascending |
 
-To connect a filter control to a chart: click the filter control → Edit interactions →
-tick the charts you want it to affect. Charts using different data sources (e.g.
-`rate_change_events`) won't connect automatically — only those sharing the same source.
+> This chart tells the price story alongside Chart 1's volume story. The divergence between
+> Detached (steep rise) and Flat (shallow rise) is the standout visual — especially during the
+> 2022–2023 hike cycle where flat prices stagnated while detached remained elevated.
+
+Colours: match Chart 5 — D=Dark blue, S=Teal, T=Purple, F=Orange, O=Grey.
 
 ---
 
-## 6. Finishing Touches
+## 7. Global Filter Controls
 
-### Header
+Add these controls using the positions below, placed in the header band (y=75 area):
+
+| Control | Data source | Field | Position |
+|---------|-------------|-------|----------|
+| Date Range | `rate_lag_analysis` | `month` | Top left |
+| Broad Region dropdown | `rate_lag_analysis` | `broad_region` | Top centre |
+| Property Type dropdown | `rate_lag_analysis` | `property_type` | Top right |
+
+Connect each control: click it → Edit interactions → tick Charts 1, 3, 5, 6.
+Do **not** tick Charts 2 or 4 — they use different data sources/date fields.
+
+---
+
+## 8. Finishing Touches
+
+### Header text box
 - Title: **"How BoE Rate Changes Move the UK Housing Market"**
-- Subtitle: "Source: HM Land Registry · Bank of England · 1997–2026 · Personal project"
-- Font: Google Sans, 24px, dark navy background (`#1A237E`)
+- Subtitle: "HM Land Registry · Bank of England · 1997–2026 · Personal project"
+- Background: `#1A237E`, text white, font Google Sans 22px
 
 ### Theme
 Theme and Layout → custom:
@@ -243,16 +295,14 @@ Theme and Layout → custom:
 - Accent: `#1A237E`
 - Font: Google Sans
 
-### Share settings
+### Share
 **File → Share → Manage access → Anyone with the link can view**
-
-Copy the link — this is what goes on LinkedIn.
 
 ---
 
-## 7. Key Insight to Highlight
+## 9. Key Insight SQL
 
-Run this in BigQuery to find your headline number:
+Run in BigQuery to find your LinkedIn headline number:
 
 ```sql
 SELECT
@@ -271,5 +321,5 @@ ORDER BY avg_pct_drop_after_hike
 LIMIT 5;
 ```
 
-The region with the biggest negative number is your LinkedIn headline:
-*"[Region] detached home transactions fell by X% on average in the 3 months following a BoE rate hike"*
+The region with the biggest negative number is your headline:
+*"[Region] detached home transactions fell by X% on average in the 3 months following a BoE rate hike — across 29 years of data"*
