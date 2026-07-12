@@ -16,7 +16,8 @@
 
 with lag_data as (
     select * from {{ ref('rate_lag_analysis') }}
-    where property_type in ('D', 'S', 'T', 'F')  -- exclude 'Other' category
+    where property_type in ('D', 'S', 'T', 'F')  -- exclude 'Other' property type
+      and broad_region != 'Other England'          -- exclude catch-all bucket (unmapped counties)
 ),
 
 -- Aggregate to broad_region level first to avoid small-county skew
