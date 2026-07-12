@@ -1,6 +1,6 @@
-# UK Housing & Interest Rate Pipeline
+# UK Housing Market Analytics Platform
 
-End-to-end GCP data pipeline that answers:
+An end-to-end production-style GCP data engineering pipeline built around one question:
 
 > **How do Bank of England base rate changes impact UK property transaction volumes and prices — and how long is the lag?**
 
