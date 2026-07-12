@@ -192,7 +192,7 @@ Required repository secrets: `GCP_SA_KEY`, `GCP_PROJECT_ID`.
 
 ---
 
-## Interview Talking Points
+## Key Design Decisions
 
 - **Incremental model** — `monthly_transactions_by_region` only scans new months on each run, with safe overlap logic (`is_incremental_safe` macro handles late-arriving data)
 - **Hybrid batch + streaming** — `int_rates_reconciled` unions both sources; streaming events appear in reports within seconds of a rate change
