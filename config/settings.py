@@ -1,5 +1,6 @@
 import os
 from dataclasses import dataclass
+from datetime import datetime
 from functools import lru_cache
 
 
@@ -31,5 +32,5 @@ def get_settings() -> Settings:
         pubsub_rate_changes_topic=os.environ.get(
             "PUBSUB_RATE_CHANGES_TOPIC", "boe-rate-changes"
         ),
-        land_registry_year=int(os.environ.get("LAND_REGISTRY_YEAR", "2025")),
+        land_registry_year=int(os.environ.get("LAND_REGISTRY_YEAR", str(datetime.now().year))),
     )

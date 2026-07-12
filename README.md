@@ -1,6 +1,6 @@
-# UK Housing & Interest Rate Pipeline
+# UK Housing Market Analytics Platform
 
-End-to-end GCP data pipeline that answers:
+An end-to-end production-style GCP data engineering pipeline built around one question:
 
 > **How do Bank of England base rate changes impact UK property transaction volumes and prices — and how long is the lag?**
 
@@ -192,7 +192,7 @@ Required repository secrets: `GCP_SA_KEY`, `GCP_PROJECT_ID`.
 
 ---
 
-## Interview Talking Points
+## Key Design Decisions
 
 - **Incremental model** — `monthly_transactions_by_region` only scans new months on each run, with safe overlap logic (`is_incremental_safe` macro handles late-arriving data)
 - **Hybrid batch + streaming** — `int_rates_reconciled` unions both sources; streaming events appear in reports within seconds of a rate change

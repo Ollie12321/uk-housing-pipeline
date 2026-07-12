@@ -47,7 +47,15 @@ lagged as (
     select
         t.month,
         t.region,
+        t.broad_region,
         t.property_type,
+        case t.property_type
+            when 'D' then 'Detached'
+            when 'S' then 'Semi-detached'
+            when 'T' then 'Terraced'
+            when 'F' then 'Flat'
+            when 'O' then 'Other'
+        end                                       as property_type_label,
         t.transaction_count,
         t.avg_price,
         t.median_price,

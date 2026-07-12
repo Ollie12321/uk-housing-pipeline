@@ -33,6 +33,7 @@ aggregated as (
     select
         date_trunc(transaction_date, month)   as month,
         region,
+        broad_region,
         property_type,
         count(*)                              as transaction_count,
         avg(price)                            as avg_price,
@@ -42,7 +43,7 @@ aggregated as (
         avg(base_rate)                        as avg_base_rate,
         avg(gilt_yield_pct)                   as avg_gilt_yield_pct
     from source
-    group by 1, 2, 3
+    group by 1, 2, 3, 4
 )
 
 select

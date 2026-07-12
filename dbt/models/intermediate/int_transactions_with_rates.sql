@@ -72,6 +72,7 @@ final as (
         t.duration,
         t.town_city,
         t.region,
+        t.broad_region,
         rfm.base_rate,
         g.avg_yield_pct as gilt_yield_pct
     from transactions t
